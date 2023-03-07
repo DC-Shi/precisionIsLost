@@ -4,3 +4,10 @@
 *.ptx
 *.cubin
 *.fatbin
+
+# Ignore vscode file
+.vscode
+
+# Ignore binary
+*.o
+*.exe
