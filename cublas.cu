@@ -4,37 +4,7 @@
 
 #include "memory.cuh"
 
-// __host__ void printMatrices(float *A, float *B, float *C){
-//   printf("\nMatrix A:\n");
-//   printMat(A,WA,HA);
-//   printf("\n");
-//   printf("\nMatrix B:\n");
-//   printMat(B,WB,HB);
-//   printf("\n");
-//   printf("\nMatrix C:\n");
-//   printMat(C,WC,HC);
-//   printf("\n");
-// }
 
-// __host__ int freeMatrices(float *A, float *B, float *C, float *AA, float *BB, float *CC){
-//   free( A );  free( B );  free ( C );
-//   cublasStatus status = cublasFree(AA);
-//   if (status != CUBLAS_STATUS_SUCCESS) {
-//     fprintf (stderr, "!!!! memory free error (A)\n");
-//     return EXIT_FAILURE;
-//   }
-//   status = cublasFree(BB);
-//   if (status != CUBLAS_STATUS_SUCCESS) {
-//     fprintf (stderr, "!!!! memory free error (B)\n");
-//     return EXIT_FAILURE;
-//   }
-//   status = cublasFree(CC);
-//   if (status != CUBLAS_STATUS_SUCCESS) {
-//     fprintf (stderr, "!!!! memory free error (C)\n");
-//     return EXIT_FAILURE;
-//   }
-//   return EXIT_SUCCESS;
-// }
 
 int  main (int argc, char** argv) {
   cublasStatus_t status;
@@ -66,18 +36,16 @@ int  main (int argc, char** argv) {
     float *devC = initializeDeviceFloatFromHostFloat(HC, WC, floatC);
 
     cublasHandle_t handle;
-    cublasCreate(&handle);
+    cublasErrCheck( cublasCreate(&handle) );
 
     // TODO perform Single-Precision Matrix to Matrix Multiplication, GEMM, on AA and BB and place results in CC
-    status = cublasSgemm(handle, CUBLAS_OP_N, CUBLAS_OP_N, HA, WB, WA, &alpha,
+    cublasErrCheck(
+      cublasSgemm(handle, CUBLAS_OP_N, CUBLAS_OP_N, HA, WB, WA, &alpha,
           devA, HA,
           devB, HB,
           &beta,
-          devC, HC);
-    if (status != CUBLAS_STATUS_SUCCESS) {
-      fprintf (stderr, "!!!! gemm error (A)\n");
-      return EXIT_FAILURE;
-    }
+          devC, HC)
+    );
 
     floatC = retrieveDeviceMemory(HC, WC, devC, floatC);
 
@@ -87,17 +55,12 @@ int  main (int argc, char** argv) {
     printMat(floatB, WB, HB);
     printf("==== C ====\n");
     printMat(floatC, WC, HC);
-    //printMatrices(floatA, floatB, floatC);
 
     freeHostPointers(A64, B64, C64, floatA, floatB, floatC);
     freeDevicePointers(devA, devB, devC);
     
     /* Shutdown */
-    status = cublasDestroy(handle);
-    if (status != CUBLAS_STATUS_SUCCESS) {
-      fprintf (stderr, "!!!! shutdown error (A)\n");
-      return EXIT_FAILURE;
-    }
+    cublasErrCheck( cublasDestroy(handle) );
 
     return EXIT_SUCCESS;
   }

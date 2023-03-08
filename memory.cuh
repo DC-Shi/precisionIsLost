@@ -64,4 +64,16 @@ void freeDevicePointers (Args && ... inputs)
   } (), ...);
 }
 
+
+const char* cublasGetErrorString(cublasStatus_t status);
+
+#define cublasErrCheck(call) \
+    do { \
+        cublasStatus_t status = call; \
+        if (status != CUBLAS_STATUS_SUCCESS) { \
+            fprintf(stderr, "cublas error in %s:%d: %s\n", __FILE__, __LINE__, cublasGetErrorString(status)); \
+            exit(1); \
+        } \
+    } while (0)
+
 #endif
