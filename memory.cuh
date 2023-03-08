@@ -42,4 +42,26 @@ __host__ float* initializeFloatFromDouble(int height, int width, double* inputDo
 __host__ float *initializeDeviceFloatFromHostFloat(int height, int width, float *hostMatrix) ;
 __host__ float *retrieveDeviceMemory(int height, int width, float *deviceMatrix, float *hostMemory);
 
+
+template<typename... Args>
+void freeHostPointers (Args && ... inputs)
+{
+  // Use lambda to free the inputs one by one
+  ([&]
+  {
+      free(inputs);
+  } (), ...);
+}
+
+
+template<typename... Args>
+void freeDevicePointers (Args && ... inputs)
+{
+  // Use lambda to free the inputs one by one
+  ([&]
+  {
+      cudaFree(inputs);
+  } (), ...);
+}
+
 #endif

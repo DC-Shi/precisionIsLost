@@ -89,16 +89,8 @@ int  main (int argc, char** argv) {
     printMat(floatC, WC, HC);
     //printMatrices(floatA, floatB, floatC);
 
-    free(A64);
-    free(B64);
-    free(C64);
-    free(floatA);
-    free(floatB);
-    free(floatC);
-
-    cudaFree(devA);
-    cudaFree(devB);
-    cudaFree(devC);
+    freeHostPointers(A64, B64, C64, floatA, floatB, floatC);
+    freeDevicePointers(devA, devB, devC);
     
     /* Shutdown */
     status = cublasDestroy(handle);
