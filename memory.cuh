@@ -51,7 +51,7 @@ void printMat(T* P, int uWP, int uHP, int cornerSize = 3)
         }
         else
         {
-          printf("%8.4f ",P[indexTo1D(i,j,uHP)]);
+          printf("%8.4e ",P[indexTo1D(i,j,uHP)]);
         }
       }
       printf("\n");
@@ -68,7 +68,7 @@ __host__ T* initializeGroundtruthMat(int height, int width, bool random, T nonRa
   // Fill hostMatrix with either random data (if random is true) else set each value to nonRandomValue
   if (random)
   {
-    T lower_bound = 0, upper_bound = 2;
+    T lower_bound = -1E-7, upper_bound = 1E-7;
     // Use C++11 random generator
     std::uniform_real_distribution<T> unif(lower_bound,upper_bound);
     std::default_random_engine re;
