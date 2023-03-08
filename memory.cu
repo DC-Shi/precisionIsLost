@@ -51,14 +51,14 @@ __host__ float *initializeDeviceFloatFromHostFloat(int height, int width, float 
 {
   // Allocate device memory of type float of size height * width called deviceMatrix
   float* deviceMatrix;
-  auto status = cublasAlloc(height*width,sizeof(float),(void**)&deviceMatrix);
-  if (status != CUBLAS_STATUS_SUCCESS) {
+  auto cudaStatus = cudaMalloc((void**)&deviceMatrix, height*width*sizeof(float));
+  if (cudaStatus != 0) {
     fprintf (stderr, "!!!! device memory allocation error\n");
     return NULL;
   }
 
   // Set deviceMatrix to values from hostMatrix
-  status = cublasSetMatrix(height, width, sizeof(float), hostMatrix, height, deviceMatrix, height);
+  auto status = cublasSetMatrix(height, width, sizeof(float), hostMatrix, height, deviceMatrix, height);
   if (status != CUBLAS_STATUS_SUCCESS) {
     fprintf (stderr, "!!!! device memory set error\n");
     return NULL;
