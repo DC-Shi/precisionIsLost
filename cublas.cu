@@ -93,6 +93,8 @@ int  main (int argc, char** argv) {
     // printMat(floatA, WA, HA);
     // printf("==== B ====\n");
     // printMat(floatB, WB, HB);
+    printf("==== C64 ====\n");
+    printMat(C64, WC, HC);
     printf("==== C ====\n");
     printMat(floatC, WC, HC);
 

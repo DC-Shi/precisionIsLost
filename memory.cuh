@@ -23,7 +23,41 @@
     } while (0)
 
 const char* cublasGetErrorString(cublasStatus_t status);
-void printMat(float*P, int uWP, int uHP, int cornerSize=3);
+
+// Print the matrix, given the pointer and height, width.
+// The data is stored in column-major, but we need to print row-by-row.
+// Also, if the matrix too large, we need to print corner values only.
+template <typename T>
+void printMat(T* P, int uWP, int uHP, int cornerSize = 3)
+{
+  int i,j;
+  for (i = 0; i < uHP; i++)
+  {
+    if (uHP > 2*cornerSize && cornerSize <= i && i < uHP - cornerSize)
+    {
+      // Print one line and jump to the final several lines.
+      printf("   ... \n");
+      i = uHP - cornerSize - 1;
+    }
+    else
+    {
+      for (j = 0; j < uWP; j++)
+      {
+        if (uWP > 2*cornerSize && cornerSize <= j && j < uWP - cornerSize)
+        {
+            // Print one and jump to the final several columns.
+            printf(" ... ");
+            j = uWP - cornerSize - 1;
+        }
+        else
+        {
+          printf("%8.4f ",P[indexTo1D(i,j,uHP)]);
+        }
+      }
+      printf("\n");
+    }
+  }
+}
 
 template <typename T>
 __host__ T* initializeGroundtruthMat(int height, int width, bool random, T nonRandomValue)
