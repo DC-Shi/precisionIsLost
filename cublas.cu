@@ -25,20 +25,38 @@ int  main (int argc, char** argv) {
     // Since Ampere support IEEE-compliant FP64 computations, we use cublas for the computation.
     float *floatC = initializeGroundtruthMat<float>(HC, WC, false, 0);
     float *floatCFromCpu = initializeGroundtruthMat<float>(HC, WC, false, -1);
-    float alpha = 1.0f;
-    float beta = 0.0f;
-
-    // TODO use initializeDeviceMemoryFromHostMemory to create AA from matrix A
-    float *devA = initializeDeviceFloatFromHostFloat(HA, WA, floatA);
-    // TODO use initializeDeviceMemoryFromHostMemory to create BB from matrix B
-    float *devB = initializeDeviceFloatFromHostFloat(HB, WB, floatB);
-    // TODO use initializeDeviceMemoryFromHostMemory to create CC from matrix C
-    float *devC = initializeDeviceFloatFromHostFloat(HC, WC, floatC);
-
+    float alpha = 1.0f, beta = 0.0f;
+    double alpha64 = 1.0, beta64 = 1.0;
+    
     cublasHandle_t handle;
     cublasErrCheck( cublasCreate(&handle) );
+    
+    double *devA64, *devB64, *devC64;
+    devA64 = initializeDeviceMatFromHostMat(HA, WA, A64);
+    devB64 = initializeDeviceMatFromHostMat(HB, WB, B64);
+    devC64 = initializeDeviceMatFromHostMat(HC, WC, C64);
+    // First compute the ground truth  
+    cublasErrCheck(
+      cublasDgemm(handle, CUBLAS_OP_N, CUBLAS_OP_N, HA, WB, WA, &alpha64,
+          devA64, HA,
+          devB64, HB,
+          &beta64,
+          devC64, HC)
+    );
+    // Copy the value back, C64 now stored the groundtruth.
+    retrieveDeviceMemory<double>(HC, WC, devC64, C64);
+    // Now we can free the devX64 pointers
+    freeDevicePointers(devA64, devB64, devC64);
 
-    // TODO perform Single-Precision Matrix to Matrix Multiplication, GEMM, on AA and BB and place results in CC
+
+    // Init device memory from host memory
+    float *devA, *devB, *devC;
+    devA = initializeDeviceMatFromHostMat(HA, WA, floatA);
+    devB = initializeDeviceMatFromHostMat(HB, WB, floatB);
+    devC = initializeDeviceMatFromHostMat(HC, WC, floatC);
+
+    
+    // Matrix to Matrix Multiplication, GEMM
     cublasErrCheck(
       cublasSgemm(handle, CUBLAS_OP_N, CUBLAS_OP_N, HA, WB, WA, &alpha,
           devA, HA,
@@ -47,7 +65,7 @@ int  main (int argc, char** argv) {
           devC, HC)
     );
 
-    floatC = retrieveDeviceMemory(HC, WC, devC, floatC);
+    retrieveDeviceMemory(HC, WC, devC, floatC);
 
     printf("==== A ====\n");
     printMat(floatA, WA, HA);

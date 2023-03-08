@@ -47,36 +47,6 @@ __host__ float* initializeFloatFromDouble(int height, int width, double* inputDo
   return ret;
 }
 
-__host__ float *initializeDeviceFloatFromHostFloat(int height, int width, float *hostMatrix)
-{
-  // Allocate device memory of type float of size height * width called deviceMatrix
-  float* deviceMatrix;
-  auto cudaStatus = cudaMalloc((void**)&deviceMatrix, height*width*sizeof(float));
-  if (cudaStatus != 0) {
-    fprintf (stderr, "!!!! device memory allocation error\n");
-    return NULL;
-  }
-
-  // Set deviceMatrix to values from hostMatrix
-  auto status = cublasSetMatrix(height, width, sizeof(float), hostMatrix, height, deviceMatrix, height);
-  if (status != CUBLAS_STATUS_SUCCESS) {
-    fprintf (stderr, "!!!! device memory set error\n");
-    return NULL;
-  }
-
-  return deviceMatrix;
-}
-
-__host__ float *retrieveDeviceMemory(int height, int width, float *deviceMatrix, float *hostMemory) {
-  // TODO get matrix values from deviceMatrix and place results in hostMemory
-  auto status = cublasGetMatrix(height, width, sizeof(float), deviceMatrix, height, hostMemory, height);
-  if (status != CUBLAS_STATUS_SUCCESS) {
-    fprintf (stderr, "!!!! host memory get error\n");
-    return NULL;
-  }
-
-  return hostMemory;
-}
 
 
 __host__ void printMatrices(float *A, float *B, float *C){

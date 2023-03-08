@@ -11,6 +11,18 @@
 #define HC HA  
 #define indexTo1D(i,j,ld) (((j)*(ld))+(i))
 
+
+
+#define cublasErrCheck(call) \
+    do { \
+        cublasStatus_t status = call; \
+        if (status != CUBLAS_STATUS_SUCCESS) { \
+            fprintf(stderr, "cublas error in %s:%d: %s\n", __FILE__, __LINE__, cublasGetErrorString(status)); \
+            exit(1); \
+        } \
+    } while (0)
+
+const char* cublasGetErrorString(cublasStatus_t status);
 void printMat(float*P, int uWP, int uHP, int cornerSize=3);
 
 template <typename T>
@@ -38,9 +50,41 @@ __host__ T* initializeGroundtruthMat(int height, int width, bool random, T nonRa
 }
 
 
+template <typename T>
+__host__ T* initializeDeviceMatFromHostMat(int height, int width, T *hostMatrix)
+{
+  // Allocate device memory of type float of size height * width called deviceMatrix
+  T* deviceMatrix;
+  auto cudaStatus = cudaMalloc((void**)&deviceMatrix, height*width*sizeof(T));
+  if (cudaStatus != 0) {
+    fprintf (stderr, "!!!! device memory allocation error\n");
+    return NULL;
+  }
+
+  // Set deviceMatrix to values from hostMatrix
+  auto status = cublasSetMatrix(height, width, sizeof(T), hostMatrix, height, deviceMatrix, height);
+  if (status != CUBLAS_STATUS_SUCCESS) {
+    fprintf (stderr, "!!!! device memory set error\n");
+    return NULL;
+  }
+
+  return deviceMatrix;
+}
+
+
+template <typename T>
+__host__ T* retrieveDeviceMemory(int height, int width, T *deviceMatrix, T *hostMemory) {
+  // TODO get matrix values from deviceMatrix and place results in hostMemory
+  auto status = cublasGetMatrix(height, width, sizeof(T), deviceMatrix, height, hostMemory, height);
+  if (status != CUBLAS_STATUS_SUCCESS) {
+    fprintf (stderr, "!!!! host memory get error\n");
+    return NULL;
+  }
+
+  return hostMemory;
+}
+
 __host__ float* initializeFloatFromDouble(int height, int width, double* inputDouble);
-__host__ float *initializeDeviceFloatFromHostFloat(int height, int width, float *hostMatrix) ;
-__host__ float *retrieveDeviceMemory(int height, int width, float *deviceMatrix, float *hostMemory);
 
 
 template<typename... Args>
@@ -65,15 +109,5 @@ void freeDevicePointers (Args && ... inputs)
 }
 
 
-const char* cublasGetErrorString(cublasStatus_t status);
-
-#define cublasErrCheck(call) \
-    do { \
-        cublasStatus_t status = call; \
-        if (status != CUBLAS_STATUS_SUCCESS) { \
-            fprintf(stderr, "cublas error in %s:%d: %s\n", __FILE__, __LINE__, cublasGetErrorString(status)); \
-            exit(1); \
-        } \
-    } while (0)
 
 #endif
