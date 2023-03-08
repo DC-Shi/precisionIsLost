@@ -67,10 +67,32 @@ int  main (int argc, char** argv) {
 
     retrieveDeviceMemory(HC, WC, devC, floatC);
 
-    printf("==== A ====\n");
-    printMat(floatA, WA, HA);
-    printf("==== B ====\n");
-    printMat(floatB, WB, HB);
+    // Show the difference.
+    int i,j;
+    double maxAbsError = 0;
+    double maxRelError = 0;
+    double l1sum = 0;
+    for (i = 0; i < HC; i++)
+    {
+      for (j = 0; j < WC; j++)
+      {
+        double diff = std::abs(C64[indexTo1D(i,j,HC)] - floatC[indexTo1D(i,j,HC)]);
+        maxAbsError = std::max(diff, maxAbsError);
+        double relDiff = (C64[indexTo1D(i,j,HC)] == 0 ? 0 : std::abs(diff / C64[indexTo1D(i,j,HC)]));
+        maxRelError = std::max(relDiff, maxRelError);
+        l1sum += diff;
+      }
+    }
+
+    printf("The diffenence of float vs FP64 \n");
+    printf("Max Abs Diff: %f, Max Rel Diff: %f\n", maxAbsError, maxRelError);
+    printf("L1 average diff: %f\n", l1sum/(1.0*HC*WC));
+
+
+    // printf("==== A ====\n");
+    // printMat(floatA, WA, HA);
+    // printf("==== B ====\n");
+    // printMat(floatB, WB, HB);
     printf("==== C ====\n");
     printMat(floatC, WC, HC);
 
