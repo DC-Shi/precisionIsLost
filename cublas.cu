@@ -17,7 +17,8 @@ int  main (int argc, char** argv) {
   float *floatA = initializeFloatFromDouble(HA, WA, A64);
   float *floatB = initializeFloatFromDouble(HB, WB, B64);
   // Create arrays of C64 and it should contain the value of A64*B64, as groundtruth.
-  double *C64 = initializeGroundtruthMat<double>(HC, WC, true, -1);
+  // Must init to zero to give the correct result.
+  double *C64 = initializeGroundtruthMat<double>(HC, WC, false, 0);
 
   if( A64 == 0 || B64 == 0 || C64 == 0){
     return EXIT_FAILURE;
@@ -90,16 +91,16 @@ int  main (int argc, char** argv) {
     {
       for (j = 0; j < WC; j++)
       {
-        double diff = std::abs(C32[indexTo1D(i,j,HC)] - floatC[indexTo1D(i,j,HC)]);
+        double diff = std::abs(C64[indexTo1D(i,j,HC)] - floatC[indexTo1D(i,j,HC)]);
         maxAbsErr = std::max(diff, maxAbsErr);
-        double relDiff = (C32[indexTo1D(i,j,HC)] == 0 ? 0 : std::abs(diff / C32[indexTo1D(i,j,HC)]));
+        double relDiff = (C64[indexTo1D(i,j,HC)] == 0 ? 0 : std::abs(diff / C64[indexTo1D(i,j,HC)]));
         maxRelErr = std::max(relDiff, maxRelErr);
         meanAbsErr += diff;
         meanRelErr += relDiff;
       }
     }
 
-    printf("The diffenence of float_using_gpu vs FP32_cpu \n");
+    printf("The diffenence of float_using_gpu vs FP64 \n");
     printf("Max Abs diff: %e, Max Rel diff: %e\n", maxAbsErr, maxRelErr);
     printf("Avg Abs diff: %e, Avg Rel diff: %e\n", meanAbsErr/(1.0*HC*WC), meanRelErr/(1.0*HC*WC));
 
