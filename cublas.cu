@@ -67,26 +67,41 @@ int  main (int argc, char** argv) {
 
     retrieveDeviceMemory(HC, WC, devC, floatC);
 
+    float* C32;
+    C32 = initializeGroundtruthMat<float>(HC, WC, false, 0);
+    for (int i = 0; i < HC; i++)
+    {
+      for (int j = 0; j < WC; j++)
+      {
+        for (int k = 0; k < WA; k++)
+        {
+          C32[indexTo1D(i,j,HC)] += A64[indexTo1D(i,k,HA)] * B64[indexTo1D(k,j,HB)];
+        }
+      }
+    }
+
     // Show the difference.
     int i,j;
-    double maxAbsError = 0;
-    double maxRelError = 0;
-    double l1sum = 0;
+    double maxAbsErr = 0;
+    double maxRelErr = 0;
+    double meanRelErr = 0;
+    double meanAbsErr = 0;
     for (i = 0; i < HC; i++)
     {
       for (j = 0; j < WC; j++)
       {
-        double diff = std::abs(C64[indexTo1D(i,j,HC)] - floatC[indexTo1D(i,j,HC)]);
-        maxAbsError = std::max(diff, maxAbsError);
-        double relDiff = (C64[indexTo1D(i,j,HC)] == 0 ? 0 : std::abs(diff / C64[indexTo1D(i,j,HC)]));
-        maxRelError = std::max(relDiff, maxRelError);
-        l1sum += diff;
+        double diff = std::abs(C32[indexTo1D(i,j,HC)] - floatC[indexTo1D(i,j,HC)]);
+        maxAbsErr = std::max(diff, maxAbsErr);
+        double relDiff = (C32[indexTo1D(i,j,HC)] == 0 ? 0 : std::abs(diff / C32[indexTo1D(i,j,HC)]));
+        maxRelErr = std::max(relDiff, maxRelErr);
+        meanAbsErr += diff;
+        meanRelErr += relDiff;
       }
     }
 
-    printf("The diffenence of float vs FP64 \n");
-    printf("Max Abs Diff: %f, Max Rel Diff: %f\n", maxAbsError, maxRelError);
-    printf("L1 average diff: %f\n", l1sum/(1.0*HC*WC));
+    printf("The diffenence of float_using_gpu vs FP32_cpu \n");
+    printf("Max Abs diff: %e, Max Rel diff: %e\n", maxAbsErr, maxRelErr);
+    printf("Avg Abs diff: %e, Avg Rel diff: %e\n", meanAbsErr/(1.0*HC*WC), meanRelErr/(1.0*HC*WC));
 
 
     // printf("==== A ====\n");
@@ -95,10 +110,12 @@ int  main (int argc, char** argv) {
     // printMat(floatB, WB, HB);
     printf("==== C64 ====\n");
     printMat(C64, WC, HC);
+    printf("==== C32 ====\n");
+    printMat(C32, WC, HC);
     printf("==== C ====\n");
     printMat(floatC, WC, HC);
 
-    freeHostPointers(A64, B64, C64, floatA, floatB, floatC);
+    freeHostPointers(A64, B64, C64, floatA, floatB, floatC, C32);
     freeDevicePointers(devA, devB, devC);
     
     /* Shutdown */
