@@ -3,9 +3,9 @@
 
 #include <random>
 
-#define HA 256
-#define WA 256
-#define WB 256
+#define HA 1024
+#define WA 1024
+#define WB 1024
 #define HB WA 
 #define WC WB   
 #define HC HA  
@@ -68,7 +68,7 @@ __host__ T* initializeGroundtruthMat(int height, int width, bool random, T nonRa
   // Fill hostMatrix with either random data (if random is true) else set each value to nonRandomValue
   if (random)
   {
-    T lower_bound = -1E-7, upper_bound = 1E-7;
+    T lower_bound = -1, upper_bound = 1;
     // Use C++11 random generator
     std::uniform_real_distribution<T> unif(lower_bound,upper_bound);
     std::default_random_engine re;
