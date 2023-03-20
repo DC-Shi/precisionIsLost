@@ -9,7 +9,7 @@ all: clean build
 build: cublas.cu memory.cu
 	$(CXX) $? --std c++17 -o cublas_assignment.exe -Wno-deprecated-gpu-targets $(CXXFLAGS) -I. -I/usr/local/cuda/include -lcuda -lcublas
 
-run:
+run: build
 	./cublas_assignment.exe
 
 clean:
