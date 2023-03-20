@@ -86,6 +86,14 @@ int  main (int argc, char** argv) {
     devC = initializeDeviceMatFromHostMat(HC, WC, floatC);
 
     printf("Will do %d sGEMM\n", numLoop);
+
+    // Create timing variables
+    cudaEvent_t start, stop;
+    cudaEventCreate(&start);
+    cudaEventCreate(&stop);
+    // And start timing before GEMM
+    cudaEventRecord(start);
+    
     for (int i = 0; i < numLoop; i++)
     {
     // Matrix to Matrix Multiplication, GEMM
@@ -95,6 +103,12 @@ int  main (int argc, char** argv) {
           &beta,
           devC, HC);
     }
+    // And end timing after GEMM
+    cudaEventRecord(stop);
+    cudaEventSynchronize(stop);
+    float gemmMilliseconds = 0;
+    cudaEventElapsedTime(&gemmMilliseconds, start, stop);
+    printf("GEMM takes %.1f ms\n", gemmMilliseconds);
 
     retrieveDeviceMemory(HC, WC, devC, floatC);
 
