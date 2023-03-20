@@ -1,12 +1,41 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <cublas_v2.h>
+#include <iostream>
 
 #include "memory.cuh"
 
 
+static void show_usage(std::string name)
+{
+    std::cerr << "Usage: " << name << " <option(s)> SOURCES\n"
+              << "Options:\n"
+              << "\t-h,--help\t\tShow this help message\n"
+              << "\t-l,--loop LOOP\t\tSpecify the loop times for invoking cublas"
+              << std::endl;
+}
 
 int  main (int argc, char** argv) {
+
+    std::vector <std::string> sources;
+    int numLoop = 5;
+    for (int i = 1; i < argc; ++i) {
+        std::string arg = argv[i];
+        if ((arg == "-h") || (arg == "--help")) {
+            show_usage(argv[0]);
+            return 0;
+        } else if ((arg == "-l") || (arg == "--loop")) {
+            if (i + 1 < argc) { // Make sure we aren't at the end of argv!
+                numLoop = std::stoi(argv[++i]); // Increment 'i' so we don't get the argument as the next argv[i].
+            } else { // Uh-oh, there was no argument to the loop option.
+                  std::cerr << "--loop option requires one argument." << std::endl;
+                return 1;
+            }  
+        } else {
+            sources.push_back(argv[i]);
+        }
+    }
+
   cublasStatus_t status;
   //cublasInit(); // Removed for transisting to cublas v2 API.
 
@@ -56,15 +85,16 @@ int  main (int argc, char** argv) {
     devB = initializeDeviceMatFromHostMat(HB, WB, floatB);
     devC = initializeDeviceMatFromHostMat(HC, WC, floatC);
 
-    
+    printf("Will do %d sGEMM\n", numLoop);
+    for (int i = 0; i < numLoop; i++)
+    {
     // Matrix to Matrix Multiplication, GEMM
-    cublasErrCheck(
       cublasSgemm(handle, CUBLAS_OP_N, CUBLAS_OP_N, HA, WB, WA, &alpha,
           devA, HA,
           devB, HB,
           &beta,
-          devC, HC)
-    );
+          devC, HC);
+    }
 
     retrieveDeviceMemory(HC, WC, devC, floatC);
 
